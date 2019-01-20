@@ -1,12 +1,18 @@
 #' Import metadata
 #'
-#' Import meta, data, interpolate standards and organize
+#'
+#' Import metadata from the first few lines of a datasheet
 #'
 #' @param fileloc my file loc
 #'
 #' @export
+#'
 #' @family import
 #'
+
+library(dplyr)
+library(zoo)
+
 import_meta <- function(fileloc) {
 
   # extracts first line as meta data for one day's values
@@ -32,14 +38,15 @@ import_meta <- function(fileloc) {
 
 #' Import sample data
 #'
-#' This function imports all the \strong{cleaned} sample data
+#' This function imports all the \strong{cleaned} sample data and
+#' separates it from standards
 #'
 #' @param meta_data this is the date and time metadata for this sampling
 #' @inheritParams import_meta
 #' @export
 #' @family import
 #'
-import_sample <- function(fileloc, meta_data) { # meta_data should be "meta" from import_meta function
+import_msrmts <- function(fileloc, meta_data) { # meta_data should be "meta" from import_meta function
 
   # read file + rename columns
   samp <- read.csv(fileloc, skip = 2, header = TRUE, na.strings = c(".", " ", "", "NA"), stringsAsFactors = FALSE)
@@ -54,19 +61,8 @@ import_sample <- function(fileloc, meta_data) { # meta_data should be "meta" fro
   samp$incub_count <- meta_data$incub_count
   samp$std_time_int <- paste(meta_data$day_flush, samp$std_time_int)
 
-
-  return(samp)
-}
-
-#' Import and interpolate standards
-#'
-#' @param samples samples should be "samp" from the \code{\link{import_sample}} function
-#' @export
-#' @family import
-
-interpolate_std <- function(samples) { # samples should be "samp" from import_sample function
-  # standards are separated into their own list
-  standards <- select(samples, std_time_int, std_integral) %>%
+  # separating the  standards
+  standards <- select(samp, std_time_int, std_integral) %>%
     mutate(
       to_remove = is.na(std_integral), # marking which rows to remove (i.e. NAs)
       std_group = cumsum(is.na(std_integral))
@@ -76,7 +72,7 @@ interpolate_std <- function(samples) { # samples should be "samp" from import_sa
   standards$std_time_int <- ymd_hms(standards$std_time_int)
   std_full <- make_std(standards)
 
-  return(std_full)
+  return(samp, std_full)
 }
 
 #' Combine all and format
@@ -123,7 +119,6 @@ combine_all <- function(samples, interpolate_data, meta_data) { ## samples shoul
 
   return(samp_trim)
 }
-
 
 # === 5: COMBIME FUNCTIONS FOR CODE USE ===
 get_info <- function(fileloc, meta_data, samples, interpolate_data) {

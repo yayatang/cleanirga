@@ -1,12 +1,12 @@
-Package: IRGAdat
-Title: What the Package Does (One Line, Title Case)
+Package: cleanirga
+Title: Mungs And Analyzes Data From IRGA Sampling
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Yaya",
+           family = "T",
            role = c("aut", "cre"),
            email = "first.last@example.com")
-Description: What the package does (one paragraph).
+Description: Data entered in Google sheets is saved as CSV and read by this package to clean, organize, and interpolate the appropriate data for analysis.
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
